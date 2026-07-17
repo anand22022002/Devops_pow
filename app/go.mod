@@ -1,8 +1,6 @@
 module github.com/GoogleCloudPlatform/microservices-demo/src/frontend
 
-go 1.25.0
-
-toolchain go1.26.4
+go 1.23.0
 
 require (
 	cloud.google.com/go/compute/metadata v0.9.0
