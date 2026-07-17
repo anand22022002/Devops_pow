@@ -12,7 +12,7 @@ on:
 
 env:
   REGISTRY: ghcr.io
-  IMAGE_NAME: ${{ github.repository }}
+  IMAGE_NAME: anand22022002/kubeinfra-frontend
 
 jobs:
   ##############################################################
@@ -34,6 +34,7 @@ jobs:
         env:
           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
           SONAR_HOST_URL: ${{ secrets.SONAR_HOST_URL }}
+          SONAR_ORGANIZATION: ${{ secrets.SONAR_ORGANIZATION }}
 
       - name: SonarQube Quality Gate check
         uses: SonarSource/sonarqube-quality-gate-action@master
