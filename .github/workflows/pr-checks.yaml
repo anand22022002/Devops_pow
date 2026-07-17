@@ -1,0 +1,50 @@
+name: PR Checks — Lint & Terraform Validate
+
+on:
+  pull_request:
+    branches: [main]
+
+jobs:
+  ##############################################################
+  # Terraform format + validate on every PR
+  ##############################################################
+  terraform-lint:
+    name: Terraform Lint
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup Terraform
+        uses: hashicorp/setup-terraform@v3
+        with:
+          terraform_version: "1.7.5"
+
+      - name: Terraform Format Check
+        run: terraform fmt -check -recursive terraform/
+        continue-on-error: false
+
+      - name: Terraform Validate
+        working-directory: terraform/envs/dev
+        run: |
+          terraform init -backend=false
+          terraform validate
+
+  ##############################################################
+  # Kubernetes manifest validation
+  ##############################################################
+  k8s-lint:
+    name: K8s Manifest Lint
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install kubeval
+        run: |
+          wget -q https://github.com/instrumenta/kubeval/releases/latest/download/kubeval-linux-amd64.tar.gz
+          tar xf kubeval-linux-amd64.tar.gz
+          sudo mv kubeval /usr/local/bin/
+
+      - name: Validate K8s manifests
+        run: |
+          find k8s-manifests/ -name "*.yaml" -not -path "*/templates/*" | \
+            xargs kubeval --ignore-missing-schemas

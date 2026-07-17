@@ -24,7 +24,7 @@ spec:
       containers:
         - name: frontend
           # ArgoCD Image Updater will rewrite this image tag automatically
-          image: ghcr.io/GITHUB_ORG/kubeinfra-frontend:latest
+          image: ghcr.io/anand22022002/kubeinfra-frontend:latest
           ports:
             - containerPort: 8080
           env:
