@@ -13,9 +13,9 @@ variable "bastion_sg_id" {
 }
 
 variable "instance_type" {
-  description = "EC2 instance type for bastion (t3.micro is plenty)"
+  description = "EC2 instance type for bastion (t2.micro is plenty)"
   type        = string
-  default     = "t3.micro"
+  default     = "t2.micro"
 }
 
 variable "bastion_public_key" {
