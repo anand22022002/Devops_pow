@@ -1,0 +1,95 @@
+##############################################################
+# NetworkPolicies — zero-trust segmentation
+# Rule: frontend → cartservice ✅
+#        cartservice → redis ✅
+#        frontend → redis ❌ (denied — enforced by CNI)
+##############################################################
+
+# Default deny all ingress in boutique namespace
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: default-deny-all
+  namespace: boutique
+spec:
+  podSelector: {}
+  policyTypes:
+    - Ingress
+    - Egress
+---
+# Allow frontend to receive traffic from the Gateway/ALB
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: allow-frontend-ingress
+  namespace: boutique
+spec:
+  podSelector:
+    matchLabels:
+      app: frontend
+  policyTypes:
+    - Ingress
+    - Egress
+  ingress:
+    - {}  # From ALB (any source — ALB is outside namespace)
+  egress:
+    - to:
+        - podSelector:
+            matchLabels:
+              app: cartservice
+      ports:
+        - port: 7070
+    - ports:  # Allow DNS
+        - port: 53
+          protocol: UDP
+---
+# Allow cartservice to receive from frontend, send to redis
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: allow-cartservice
+  namespace: boutique
+spec:
+  podSelector:
+    matchLabels:
+      app: cartservice
+  policyTypes:
+    - Ingress
+    - Egress
+  ingress:
+    - from:
+        - podSelector:
+            matchLabels:
+              app: frontend
+      ports:
+        - port: 7070
+  egress:
+    - to:
+        - podSelector:
+            matchLabels:
+              app: redis
+      ports:
+        - port: 6379
+    - ports:
+        - port: 53
+          protocol: UDP
+---
+# Allow redis to receive from cartservice only
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: allow-redis-ingress
+  namespace: boutique
+spec:
+  podSelector:
+    matchLabels:
+      app: redis
+  policyTypes:
+    - Ingress
+  ingress:
+    - from:
+        - podSelector:
+            matchLabels:
+              app: cartservice
+      ports:
+        - port: 6379

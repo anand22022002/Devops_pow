@@ -1,0 +1,35 @@
+##############################################################
+# Dev Overlay — Kustomize
+# Overrides base with dev-specific settings:
+#   - 1 replica (cost saving)
+#   - Image tag from ArgoCD Image Updater
+##############################################################
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+
+namespace: boutique
+
+resources:
+  - ../../base
+
+patches:
+  # Scale down for dev (HPA still active as demo)
+  - patch: |-
+      - op: replace
+        path: /spec/replicas
+        value: 1
+    target:
+      kind: Deployment
+      name: frontend
+  - patch: |-
+      - op: replace
+        path: /spec/replicas
+        value: 1
+    target:
+      kind: Deployment
+      name: cartservice
+
+# Image tags are managed by ArgoCD Image Updater — do not edit manually
+images:
+  - name: ghcr.io/GITHUB_ORG/kubeinfra-frontend
+    newTag: latest   # ArgoCD Image Updater rewrites this line automatically

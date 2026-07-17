@@ -1,0 +1,52 @@
+##############################################################
+# GatewayClass — uses the AWS Load Balancer Controller
+##############################################################
+apiVersion: gateway.networking.k8s.io/v1
+kind: GatewayClass
+metadata:
+  name: aws-alb
+  annotations:
+    argocd.argoproj.io/sync-wave: "-5"
+spec:
+  controllerName: eks.amazonaws.com/alb
+---
+##############################################################
+# Gateway — shared ALB for all services
+#
+# DNS OPTIONS (pick one):
+#
+# Option A — No domain (demo/Loom video):
+#   Access via raw ALB hostname after apply:
+#   kubectl get gateway kubeinfra-gateway -o jsonpath='{.status.addresses[0].value}'
+#
+# Option B — nip.io (free, no registration needed):
+#   1. Get ALB IP: nslookup <ALB-hostname>
+#   2. Access as: http://app.<ALB-IP>.nip.io
+#
+# Option C — Real domain (when you buy one):
+#   1. Uncomment module.route53 in terraform/envs/dev/main.tf
+#   2. Replace hostnames below with your actual domain
+#   3. Add certificate-arn annotation with ACM cert ARN
+##############################################################
+apiVersion: gateway.networking.k8s.io/v1
+kind: Gateway
+metadata:
+  name: kubeinfra-gateway
+  namespace: default
+  annotations:
+    alb.ingress.kubernetes.io/scheme: internet-facing
+    alb.ingress.kubernetes.io/target-type: ip
+    # Configured dynamically by bootstrap.sh
+    alb.ingress.kubernetes.io/certificate-arn: "REPLACE_WITH_ACM_CERT_ARN"
+    alb.ingress.kubernetes.io/ssl-redirect: "443"
+    alb.ingress.kubernetes.io/group.name: kubeinfra
+    argocd.argoproj.io/sync-wave: "-4"
+spec:
+  gatewayClassName: aws-alb
+  listeners:
+    - name: http
+      protocol: HTTP
+      port: 80
+    - name: https
+      protocol: HTTPS
+      port: 443

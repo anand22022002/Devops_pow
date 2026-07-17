@@ -1,0 +1,43 @@
+##############################################################
+# External DNS — Helm Values
+# Automatically manages Route53 A/CNAME records when
+# Gateway/HTTPRoute/Service resources are created or deleted.
+#
+# Install with:
+#   helm repo add bitnami https://charts.bitnami.com/bitnami
+#   helm upgrade --install external-dns bitnami/external-dns \
+#     -n kube-system \
+#     -f k8s-manifests/networking/external-dns/values.yaml
+##############################################################
+
+provider: aws
+
+aws:
+  # REPLACE: your Route53 hosted zone ID from: terraform output route53_zone_id
+  zoneIdFilters:
+    - "REPLACE_WITH_HOSTED_ZONE_ID"
+  region: ap-south-1
+
+# Only manage records for resources annotated with external-dns
+policy: sync
+txtOwnerId: kubeinfra-external-dns
+
+sources:
+  - service
+  - ingress
+  - gateway-httproute    # Monitor Gateway API HTTPRoutes
+
+serviceAccount:
+  create: true
+  name: external-dns
+  annotations:
+    # REPLACE: ARN from: terraform output external_dns_role_arn
+    eks.amazonaws.com/role-arn: "arn:aws:iam::ACCOUNT_ID:role/kubeinfra-external-dns-role"
+
+resources:
+  requests:
+    cpu: 50m
+    memory: 64Mi
+  limits:
+    cpu: 100m
+    memory: 128Mi

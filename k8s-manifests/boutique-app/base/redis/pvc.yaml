@@ -1,0 +1,8 @@
+##############################################################
+# Redis PVC — handled via StatefulSet volumeClaimTemplates
+# This file is kept as documentation only.
+# The actual PVC is defined in redis/statefulset.yaml under
+# volumeClaimTemplates, which binds to EBS via the gp2 StorageClass.
+##############################################################
+# StorageClass reference: kubernetes.io/aws-ebs → managed by EBS CSI driver add-on
+# IRSA role attached: kubeinfra-ebs-csi-role (from terraform/modules/iam)

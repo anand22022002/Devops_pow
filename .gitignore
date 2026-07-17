@@ -1,0 +1,32 @@
+# Terraform
+**/.terraform/
+*.tfstate
+*.tfstate.backup
+*.tfstate.lock.info
+.terraform.lock.hcl
+*.tfvars.backup
+
+# Sensitive values — NEVER commit
+**/terraform.tfvars.secret
+*.pem
+*.key
+id_rsa
+id_rsa.pub
+
+# Build artifacts
+*.tar
+*.zip
+dist/
+build/
+
+# Helm
+*.tgz
+
+# OS
+.DS_Store
+Thumbs.db
+
+# IDE
+.vscode/
+.idea/
+*.swp

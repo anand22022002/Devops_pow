@@ -1,0 +1,22 @@
+##############################################################
+# boutique-app — Kustomize Base
+# This is a simplified 3-service version of Google's
+# Online Boutique microservices demo (frontend/cartservice/redis)
+# Used to demonstrate the full GitOps + observability stack.
+##############################################################
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+
+namespace: boutique
+
+resources:
+  - namespace.yaml
+  - frontend/deployment.yaml
+  - frontend/service.yaml
+  - frontend/hpa.yaml
+  - cartservice/deployment.yaml
+  - cartservice/service.yaml
+  - redis/statefulset.yaml
+  - redis/service.yaml
+  - redis/pvc.yaml
+  - networkpolicies.yaml

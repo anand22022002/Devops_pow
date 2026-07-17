@@ -1,0 +1,73 @@
+##############################################################
+# cartservice — cart microservice
+##############################################################
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: cartservice
+  namespace: boutique
+  labels:
+    app: cartservice
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: cartservice
+  template:
+    metadata:
+      labels:
+        app: cartservice
+    spec:
+      serviceAccountName: cartservice
+      securityContext:
+        runAsNonRoot: true
+        runAsUser: 1000
+        seccompProfile:
+          type: RuntimeDefault
+      containers:
+        - name: cartservice
+          image: gcr.io/google-samples/microservices-demo/cartservice:v0.8.1
+          ports:
+            - containerPort: 7070
+          env:
+            - name: REDIS_ADDR
+              value: "redis-cart:6379"
+          resources:
+            requests:
+              cpu: "200m"
+              memory: "128Mi"
+            limits:
+              cpu: "300m"
+              memory: "256Mi"
+          readinessProbe:
+            grpc:
+              port: 7070
+            initialDelaySeconds: 15
+          livenessProbe:
+            grpc:
+              port: 7070
+            initialDelaySeconds: 15
+          securityContext:
+            allowPrivilegeEscalation: false
+            capabilities:
+              drop: ["ALL"]
+---
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: cartservice
+  namespace: boutique
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: cartservice
+  namespace: boutique
+spec:
+  selector:
+    app: cartservice
+  ports:
+    - name: grpc
+      port: 7070
+      targetPort: 7070
+  type: ClusterIP

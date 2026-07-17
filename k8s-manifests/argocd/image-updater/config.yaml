@@ -1,0 +1,20 @@
+##############################################################
+# ArgoCD Image Updater — ConfigMap
+# Tells Image Updater where to look for new image tags
+# and how to write them back to git.
+##############################################################
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: argocd-image-updater-config
+  namespace: argocd
+data:
+  # Registries Image Updater is allowed to poll
+  registries.conf: |
+    registries:
+      - name: GitHub Container Registry
+        api_url: https://ghcr.io
+        prefix: ghcr.io
+        credentials: pullsecret:argocd/ghcr-credentials
+        defaultns: library
+        insecure: false

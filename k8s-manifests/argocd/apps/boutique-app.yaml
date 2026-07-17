@@ -1,0 +1,38 @@
+##############################################################
+# ArgoCD Application — boutique-app
+# Points ArgoCD at the k8s-manifests/boutique-app directory
+# of THIS repo. Any git push to that path triggers auto-sync.
+##############################################################
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: boutique-app
+  namespace: argocd
+  annotations:
+    # Image Updater: watch GHCR for new tags matching semver or sha
+    argocd-image-updater.argoproj.io/image-list: frontend=ghcr.io/GITHUB_ORG/kubeinfra-frontend
+    argocd-image-updater.argoproj.io/frontend.update-strategy: digest
+    argocd-image-updater.argoproj.io/write-back-method: git
+    argocd-image-updater.argoproj.io/git-branch: main
+spec:
+  project: default
+  source:
+    repoURL: https://github.com/GITHUB_ORG/Devops_pow   # <── replace with your repo URL
+    targetRevision: HEAD
+    path: k8s-manifests/boutique-app/overlays/dev
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: boutique
+  syncPolicy:
+    automated:
+      prune: true      # Remove resources deleted from git
+      selfHeal: true   # Revert manual kubectl changes
+    syncOptions:
+      - CreateNamespace=true
+      - PrunePropagationPolicy=foreground
+    retry:
+      limit: 3
+      backoff:
+        duration: 5s
+        maxDuration: 3m
+        factor: 2

@@ -1,0 +1,32 @@
+##############################################################
+# AWS Load Balancer Controller — Helm Values
+# Install with:
+#   helm repo add eks https://aws.github.io/eks-charts
+#   helm upgrade --install aws-load-balancer-controller \
+#     eks/aws-load-balancer-controller \
+#     -n kube-system \
+#     -f k8s-manifests/networking/aws-lb-controller/values.yaml
+##############################################################
+
+# REPLACE: your EKS cluster name from: terraform output eks_cluster_name
+clusterName: kubeinfra
+
+serviceAccount:
+  create: true
+  name: aws-load-balancer-controller
+  annotations:
+    # REPLACE: ARN from: terraform output alb_controller_role_arn
+    eks.amazonaws.com/role-arn: "arn:aws:iam::ACCOUNT_ID:role/kubeinfra-alb-controller-role"
+
+# Enable Gateway API support (in addition to Ingress)
+enableGatewayAPI: true
+
+replicaCount: 2   # HA — one per AZ
+
+resources:
+  requests:
+    cpu: 100m
+    memory: 128Mi
+  limits:
+    cpu: 200m
+    memory: 256Mi

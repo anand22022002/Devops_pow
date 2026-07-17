@@ -1,0 +1,170 @@
+##############################################################
+# ECK Stack — Logging
+# Apply in this order:
+#   1. ECK Operator CRDs + operator itself
+#   2. Elasticsearch cluster
+#   3. Kibana
+#   4. Filebeat DaemonSet
+##############################################################
+
+# ─── Step 1: Install ECK Operator (run once) ────────────────
+# kubectl apply -f https://download.elastic.co/downloads/eck/2.12.1/crds.yaml
+# kubectl apply -f https://download.elastic.co/downloads/eck/2.12.1/operator.yaml
+
+---
+##############################################################
+# Elasticsearch — single-node for dev
+# Production: set count: 3 across 3 AZs
+##############################################################
+apiVersion: elasticsearch.k8s.elastic.co/v1
+kind: Elasticsearch
+metadata:
+  name: kubeinfra
+  namespace: logging
+spec:
+  version: 8.13.0
+  nodeSets:
+    - name: default
+      count: 1           # Increase to 3 for production HA
+      config:
+        node.store.allow_mmap: false
+      podTemplate:
+        spec:
+          containers:
+            - name: elasticsearch
+              resources:
+                requests:
+                  memory: 1Gi
+                  cpu: 500m
+                limits:
+                  memory: 2Gi
+                  cpu: 1
+      volumeClaimTemplates:
+        - metadata:
+            name: elasticsearch-data
+          spec:
+            accessModes:
+              - ReadWriteOnce
+            resources:
+              requests:
+                storage: 20Gi
+            storageClassName: gp2
+---
+##############################################################
+# Kibana
+##############################################################
+apiVersion: kibana.k8s.elastic.co/v1
+kind: Kibana
+metadata:
+  name: kubeinfra
+  namespace: logging
+spec:
+  version: 8.13.0
+  count: 1
+  elasticsearchRef:
+    name: kubeinfra
+  http:
+    tls:
+      selfSignedCertificate:
+        disabled: true   # ALB handles TLS externally
+---
+##############################################################
+# Filebeat DaemonSet — ships logs from all pods to ES
+# Runs on every node to capture stdout/stderr from all containers
+##############################################################
+apiVersion: beat.k8s.elastic.co/v1beta1
+kind: Beat
+metadata:
+  name: kubeinfra-filebeat
+  namespace: logging
+spec:
+  type: filebeat
+  version: 8.13.0
+  elasticsearchRef:
+    name: kubeinfra
+  config:
+    filebeat.inputs:
+      - type: container
+        paths:
+          - /var/log/containers/*.log
+        processors:
+          - add_kubernetes_metadata:
+              host: ${NODE_NAME}
+              matchers:
+                - logs_path:
+                    logs_path: "/var/log/containers/"
+    output.elasticsearch:
+      hosts: ["https://kubeinfra-es-http.logging.svc:9200"]
+    setup.kibana:
+      host: "http://kubeinfra-kb-http.logging.svc:5601"
+  daemonSet:
+    podTemplate:
+      spec:
+        serviceAccountName: filebeat
+        automountServiceAccountToken: true
+        terminationGracePeriodSeconds: 30
+        dnsPolicy: ClusterFirstWithHostNet
+        hostNetwork: true
+        containers:
+          - name: filebeat
+            resources:
+              requests:
+                cpu: 100m
+                memory: 200Mi
+              limits:
+                cpu: 500m
+                memory: 500Mi
+            volumeMounts:
+              - name: varlogcontainers
+                mountPath: /var/log/containers
+              - name: varlogpods
+                mountPath: /var/log/pods
+              - name: varlibdockercontainers
+                mountPath: /var/lib/docker/containers
+            env:
+              - name: NODE_NAME
+                valueFrom:
+                  fieldRef:
+                    fieldPath: spec.nodeName
+        volumes:
+          - name: varlogcontainers
+            hostPath:
+              path: /var/log/containers
+          - name: varlogpods
+            hostPath:
+              path: /var/log/pods
+          - name: varlibdockercontainers
+            hostPath:
+              path: /var/lib/docker/containers
+---
+# RBAC for Filebeat to read pod metadata
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: filebeat
+  namespace: logging
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  name: filebeat
+rules:
+  - apiGroups: [""]
+    resources: ["namespaces", "pods", "nodes"]
+    verbs: ["get", "watch", "list"]
+  - apiGroups: ["apps"]
+    resources: ["replicasets"]
+    verbs: ["get", "list", "watch"]
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRoleBinding
+metadata:
+  name: filebeat
+subjects:
+  - kind: ServiceAccount
+    name: filebeat
+    namespace: logging
+roleRef:
+  kind: ClusterRole
+  name: filebeat
+  apiGroup: rbac.authorization.k8s.io
