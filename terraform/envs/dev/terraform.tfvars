@@ -7,7 +7,7 @@ aws_region   = "ap-south-1" # Mumbai — change to your preferred region
 ##############################################################
 # Remote State S3 Bucket
 ##############################################################
-tfstate_bucket_name = "kubeinfra-tfstate-222634375010"
+tfstate_bucket_name = "devopsdock-tfstate-222634375010"
 
 ##############################################################
 # VPC — 2 AZ for HA
