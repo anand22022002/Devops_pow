@@ -32,4 +32,4 @@ patches:
 # Image tags are managed by ArgoCD Image Updater — do not edit manually
 images:
   - name: ghcr.io/anand22022002/kubeinfra-frontend
-    newTag: latest   # ArgoCD Image Updater rewrites this line automatically
+    newTag: "latest"
