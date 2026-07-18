@@ -132,6 +132,7 @@ kubectl apply -f ../../../k8s-manifests/logging/eck-stack.yaml
 
 echo ""
 echo ">>> Deploying Gateway API resources..."
+kubectl create namespace boutique --dry-run=client -o yaml | kubectl apply -f -
 ACM_CERT=$(terraform output -raw acm_certificate_arn)
 sed -i 's|alb.ingress.kubernetes.io/certificate-arn:.*|alb.ingress.kubernetes.io/certificate-arn: "'"${ACM_CERT}"'"|g' \
   ../../../k8s-manifests/gateway-api/gateway.yaml
