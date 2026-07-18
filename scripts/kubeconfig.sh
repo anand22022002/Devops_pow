@@ -7,7 +7,9 @@
 # =============================================================================
 set -euo pipefail
 
-TF_DIR="terraform/envs/dev"
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+REPO_ROOT="$(cd "$SCRIPT_DIR/.." && pwd)"
+TF_DIR="$REPO_ROOT/terraform/envs/dev"
 REGION="ap-south-1"
 KEY="~/.ssh/kubeinfra-bastion"
 
