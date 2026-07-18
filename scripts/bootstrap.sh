@@ -66,7 +66,7 @@ terraform apply -auto-approve
 # ─── Step 3: Configure kubectl via bastion ────────────────────────────────────
 echo ""
 echo ">>> Configuring kubectl..."
-bash ../../scripts/kubeconfig.sh
+bash ../../../scripts/kubeconfig.sh
 
 # ─── Step 4: Install in-cluster components ────────────────────────────────────
 echo ""
@@ -75,10 +75,10 @@ helm repo add eks https://aws.github.io/eks-charts
 helm repo update
 ALB_ROLE=$(terraform output -raw alb_controller_role_arn)
 sed -i 's|eks.amazonaws.com/role-arn:.*|eks.amazonaws.com/role-arn: "'"${ALB_ROLE}"'"|g' \
-  ../../k8s-manifests/networking/aws-lb-controller/values.yaml
+  ../../../k8s-manifests/networking/aws-lb-controller/values.yaml
 helm upgrade --install aws-load-balancer-controller eks/aws-load-balancer-controller \
   -n kube-system \
-  -f ../../k8s-manifests/networking/aws-lb-controller/values.yaml
+  -f ../../../k8s-manifests/networking/aws-lb-controller/values.yaml
 
 echo ""
 echo ">>> Installing External DNS..."
@@ -86,12 +86,12 @@ helm repo add bitnami https://charts.bitnami.com/bitnami
 EXTDNS_ROLE=$(terraform output -raw external_dns_role_arn)
 ZONE_ID=$(terraform output -raw route53_zone_id)
 sed -i 's|eks.amazonaws.com/role-arn:.*|eks.amazonaws.com/role-arn: "'"${EXTDNS_ROLE}"'"|g' \
-  ../../k8s-manifests/networking/external-dns/values.yaml
-sed -i "s|REPLACE_WITH_HOSTED_ZONE_ID|${ZONE_ID}|g" ../../k8s-manifests/networking/external-dns/values.yaml
-sed -i 's|- "Z[A-Z0-9]*"|- "'"${ZONE_ID}"'"|g' ../../k8s-manifests/networking/external-dns/values.yaml
+  ../../../k8s-manifests/networking/external-dns/values.yaml
+sed -i "s|REPLACE_WITH_HOSTED_ZONE_ID|${ZONE_ID}|g" ../../../k8s-manifests/networking/external-dns/values.yaml
+sed -i 's|- "Z[A-Z0-9]*"|- "'"${ZONE_ID}"'"|g' ../../../k8s-manifests/networking/external-dns/values.yaml
 helm upgrade --install external-dns bitnami/external-dns \
   -n kube-system \
-  -f ../../k8s-manifests/networking/external-dns/values.yaml
+  -f ../../../k8s-manifests/networking/external-dns/values.yaml
 
 echo ""
 echo ">>> Installing ArgoCD..."
@@ -104,7 +104,7 @@ helm upgrade --install argocd argo/argo-cd \
 echo ""
 echo ">>> Installing ArgoCD Image Updater..."
 kubectl apply -n argocd -f https://raw.githubusercontent.com/argoproj-labs/argocd-image-updater/stable/manifests/install.yaml
-kubectl apply -f ../../k8s-manifests/argocd/image-updater/config.yaml
+kubectl apply -f ../../../k8s-manifests/argocd/image-updater/config.yaml
 
 echo ""
 echo ">>> Installing Monitoring stack..."
@@ -112,7 +112,7 @@ helm repo add prometheus-community https://prometheus-community.github.io/helm-c
 kubectl create namespace monitoring --dry-run=client -o yaml | kubectl apply -f -
 helm upgrade --install kube-prometheus-stack prometheus-community/kube-prometheus-stack \
   -n monitoring \
-  -f ../../k8s-manifests/monitoring/prometheus/values.yaml
+  -f ../../../k8s-manifests/monitoring/prometheus/values.yaml
 
 echo ""
 echo ">>> Installing ECK Operator..."
@@ -120,18 +120,18 @@ kubectl create namespace logging --dry-run=client -o yaml | kubectl apply -f -
 kubectl apply -f https://download.elastic.co/downloads/eck/2.12.1/crds.yaml
 kubectl apply -f https://download.elastic.co/downloads/eck/2.12.1/operator.yaml
 sleep 30
-kubectl apply -f ../../k8s-manifests/logging/eck-stack.yaml
+kubectl apply -f ../../../k8s-manifests/logging/eck-stack.yaml
 
 echo ""
 echo ">>> Deploying Gateway API resources..."
 ACM_CERT=$(terraform output -raw acm_certificate_arn)
 sed -i 's|alb.ingress.kubernetes.io/certificate-arn:.*|alb.ingress.kubernetes.io/certificate-arn: "'"${ACM_CERT}"'"|g' \
-  ../../k8s-manifests/gateway-api/gateway.yaml
-kubectl apply -f ../../k8s-manifests/gateway-api/
+  ../../../k8s-manifests/gateway-api/gateway.yaml
+kubectl apply -f ../../../k8s-manifests/gateway-api/
 
 echo ""
 echo ">>> Deploying ArgoCD Application CRs..."
-kubectl apply -f ../../k8s-manifests/argocd/apps/
+kubectl apply -f ../../../k8s-manifests/argocd/apps/
 
 echo ""
 echo "=============================="
