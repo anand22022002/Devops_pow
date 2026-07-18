@@ -120,10 +120,11 @@ prometheus:
     storageSpec:
       volumeClaimTemplate:
         spec:
+          storageClassName: "gp2"
           accessModes: ["ReadWriteOnce"]
           resources:
             requests:
-              storage: 20Gi
+              storage: 10Gi
 
 ##############################################################
 # Node Exporter — metrics for each worker node

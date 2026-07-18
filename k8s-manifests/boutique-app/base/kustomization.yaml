@@ -15,7 +15,6 @@ resources:
   - frontend/service.yaml
   - frontend/hpa.yaml
   - cartservice/deployment.yaml
-  - cartservice/service.yaml
   - redis/statefulset.yaml
   - redis/service.yaml
   - redis/pvc.yaml

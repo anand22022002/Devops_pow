@@ -16,7 +16,7 @@ serviceAccount:
   name: aws-load-balancer-controller
   annotations:
     # REPLACE: ARN from: terraform output alb_controller_role_arn
-    eks.amazonaws.com/role-arn: "arn:aws:iam::ACCOUNT_ID:role/kubeinfra-alb-controller-role"
+    eks.amazonaws.com/role-arn: "arn:aws:iam::222634375010:role/kubeinfra-alb-controller-role"
 
 # Enable Gateway API support (in addition to Ingress)
 enableGatewayAPI: true

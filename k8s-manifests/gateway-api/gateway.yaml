@@ -37,7 +37,7 @@ metadata:
     alb.ingress.kubernetes.io/scheme: internet-facing
     alb.ingress.kubernetes.io/target-type: ip
     # Configured dynamically by bootstrap.sh
-    alb.ingress.kubernetes.io/certificate-arn: "REPLACE_WITH_ACM_CERT_ARN"
+    alb.ingress.kubernetes.io/certificate-arn: "arn:aws:acm:ap-south-1:222634375010:certificate/ed44e7e1-2dc0-4fe9-a2e6-86922fcd1455"
     alb.ingress.kubernetes.io/ssl-redirect: "443"
     alb.ingress.kubernetes.io/group.name: kubeinfra
     argocd.argoproj.io/sync-wave: "-4"
