@@ -68,6 +68,9 @@ echo ""
 echo ">>> Configuring kubectl..."
 bash ../../../scripts/kubeconfig.sh
 
+echo ">>> Pre-installing Gateway API CRDs..."
+kubectl apply -f https://github.com/kubernetes-sigs/gateway-api/releases/download/v1.1.0/standard-install.yaml
+
 # ─── Step 4: Install in-cluster components ────────────────────────────────────
 echo ""
 echo ">>> Installing AWS Load Balancer Controller..."
@@ -129,8 +132,6 @@ kubectl apply -f ../../../k8s-manifests/logging/eck-stack.yaml
 
 echo ""
 echo ">>> Deploying Gateway API resources..."
-echo "Installing Gateway API CRDs..."
-kubectl apply -f https://github.com/kubernetes-sigs/gateway-api/releases/download/v1.1.0/standard-install.yaml
 ACM_CERT=$(terraform output -raw acm_certificate_arn)
 sed -i 's|alb.ingress.kubernetes.io/certificate-arn:.*|alb.ingress.kubernetes.io/certificate-arn: "'"${ACM_CERT}"'"|g' \
   ../../../k8s-manifests/gateway-api/gateway.yaml
