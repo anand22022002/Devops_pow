@@ -108,7 +108,7 @@ helm upgrade --install argocd argo/argo-cd \
 
 echo ""
 echo ">>> Installing ArgoCD Image Updater..."
-kubectl apply -n argocd -f https://raw.githubusercontent.com/argoproj-labs/argocd-image-updater/stable/manifests/install.yaml
+kubectl apply -n argocd -f https://raw.githubusercontent.com/argoproj-labs/argocd-image-updater/stable/config/install.yaml
 kubectl apply -f ../../../k8s-manifests/argocd/image-updater/config.yaml
 
 echo ""
