@@ -11,7 +11,12 @@ SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 REPO_ROOT="$(cd "$SCRIPT_DIR/.." && pwd)"
 TF_DIR="$REPO_ROOT/terraform/envs/dev"
 REGION="ap-south-1"
-KEY="~/.ssh/kubeinfra-bastion"
+KEY="$HOME/.ssh/kubeinfra-bastion"
+if [ ! -f "$KEY" ]; then
+  if [ -f "$HOME/.ssh/devopsdock-bastion" ]; then
+    KEY="$HOME/.ssh/devopsdock-bastion"
+  fi
+fi
 
 # ─── Get outputs from Terraform ───────────────────────────────────────────────
 cd "$TF_DIR"

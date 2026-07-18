@@ -80,6 +80,9 @@ helm upgrade --install aws-load-balancer-controller eks/aws-load-balancer-contro
   -n kube-system \
   -f ../../../k8s-manifests/networking/aws-lb-controller/values.yaml
 
+echo ">>> Waiting for AWS Load Balancer Controller to be ready..."
+kubectl rollout status deployment/aws-load-balancer-controller -n kube-system --timeout=120s
+
 echo ""
 echo ">>> Installing External DNS..."
 helm repo add bitnami https://charts.bitnami.com/bitnami
