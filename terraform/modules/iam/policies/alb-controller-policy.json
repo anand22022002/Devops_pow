@@ -34,6 +34,7 @@
                 "elasticloadbalancing:DescribeLoadBalancerAttributes",
                 "elasticloadbalancing:DescribeListeners",
                 "elasticloadbalancing:DescribeListenerCertificates",
+                "elasticloadbalancing:DescribeListenerAttributes",
                 "elasticloadbalancing:DescribeSSLPolicies",
                 "elasticloadbalancing:DescribeRules",
                 "elasticloadbalancing:DescribeTargetGroups",
@@ -103,13 +104,7 @@
                 "ec2:CreateTags",
                 "ec2:DeleteTags"
             ],
-            "Resource": "arn:aws:ec2:*:*:security-group/*",
-            "Condition": {
-                "Null": {
-                    "aws:RequestedRegion": "false",
-                    "ec2:ResourceTag/ingress.k8s.aws/cluster": "false"
-                }
-            }
+            "Resource": "arn:aws:ec2:*:*:security-group/*"
         },
         {
             "Effect": "Allow",
@@ -118,12 +113,7 @@
                 "ec2:RevokeSecurityGroupIngress",
                 "ec2:DeleteSecurityGroup"
             ],
-            "Resource": "*",
-            "Condition": {
-                "Null": {
-                    "ec2:ResourceTag/ingress.k8s.aws/cluster": "false"
-                }
-            }
+            "Resource": "*"
         },
         {
             "Effect": "Allow",
@@ -157,7 +147,11 @@
             "Resource": [
                 "arn:aws:elasticloadbalancing:*:*:targetgroup/*/*",
                 "arn:aws:elasticloadbalancing:*:*:loadbalancer/net/*/*",
-                "arn:aws:elasticloadbalancing:*:*:loadbalancer/app/*/*"
+                "arn:aws:elasticloadbalancing:*:*:loadbalancer/app/*/*",
+                "arn:aws:elasticloadbalancing:*:*:listener/net/*/*/*",
+                "arn:aws:elasticloadbalancing:*:*:listener/app/*/*/*",
+                "arn:aws:elasticloadbalancing:*:*:listener-rule/net/*/*/*/*",
+                "arn:aws:elasticloadbalancing:*:*:listener-rule/app/*/*/*/*"
             ]
         },
         {
@@ -172,12 +166,7 @@
                 "elasticloadbalancing:ModifyTargetGroupAttributes",
                 "elasticloadbalancing:DeleteTargetGroup"
             ],
-            "Resource": "*",
-            "Condition": {
-                "Null": {
-                    "aws:ResourceTag/ingress.k8s.aws/cluster": "false"
-                }
-            }
+            "Resource": "*"
         },
         {
             "Effect": "Allow",
@@ -192,6 +181,7 @@
             "Action": [
                 "elasticloadbalancing:SetWebAcl",
                 "elasticloadbalancing:ModifyListener",
+                "elasticloadbalancing:ModifyListenerAttributes",
                 "elasticloadbalancing:AddListenerCertificates",
                 "elasticloadbalancing:RemoveListenerCertificates",
                 "elasticloadbalancing:ModifyRule"
