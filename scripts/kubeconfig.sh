@@ -20,19 +20,35 @@ cd - > /dev/null
 echo "Bastion IP  : $BASTION_IP"
 echo "Cluster     : $CLUSTER_NAME"
 
-# ─── Update kubeconfig (works from inside the VPC — run on the bastion) ───────
-# This script can be run ON the bastion directly via:
-#   ssh ec2-user@<BASTION_IP> "aws eks update-kubeconfig --name kubeinfra --region ap-south-1"
+echo ""
+echo ">>> Automated Local Access Setup via Bastion Tunnel..."
 
-echo ""
-echo "To configure kubectl on the BASTION, run:"
-echo "  ssh -i $KEY ec2-user@$BASTION_IP"
-echo "  aws eks update-kubeconfig --name $CLUSTER_NAME --region $REGION"
-echo "  kubectl get nodes"
-echo ""
-echo "To run kubectl from your LOCAL machine via SSH tunnel:"
-echo "  ssh -i $KEY -L 6443:<CLUSTER_ENDPOINT>:443 ec2-user@$BASTION_IP -N &"
-echo "  Then update your kubeconfig to point to localhost:6443"
-echo ""
-echo "Cluster endpoint (private):"
-cd "$TF_DIR" && terraform output -raw eks_cluster_endpoint
+# Get EKS Endpoint and extract Hostname
+cd "$TF_DIR"
+ENDPOINT=$(terraform output -raw eks_cluster_endpoint)
+cd - > /dev/null
+ENDPOINT_HOST=$(echo "$ENDPOINT" | sed 's|https://||')
+
+echo "EKS Endpoint: $ENDPOINT_HOST"
+
+# 1. Kill any existing tunnel running on port 6443
+echo "Cleaning up any old SSH tunnels..."
+pkill -f "6443:${ENDPOINT_HOST}" || true
+sleep 1
+
+# 2. Establish the SSH tunnel in background
+echo "Starting new SSH tunnel in the background..."
+ssh -i "$KEY" -o StrictHostKeyChecking=no -N -f -L 6443:"${ENDPOINT_HOST}":443 ec2-user@"$BASTION_IP"
+
+# 3. Update local kubeconfig
+echo "Updating local kubeconfig..."
+aws eks update-kubeconfig --name "$CLUSTER_NAME" --region "$REGION"
+
+# 4. Point the kubeconfig cluster server to localhost:6443 and skip verification
+echo "Redirecting kubeconfig to use tunnel on localhost:6443..."
+CONTEXT=$(kubectl config current-context)
+CLUSTER_ARN=$(kubectl config view -o jsonpath="{.contexts[?(@.name=='$CONTEXT')].context.cluster}")
+kubectl config set-cluster "$CLUSTER_ARN" --server="https://localhost:6443" --insecure-skip-tls-verify=true
+
+echo "Kubectl tunnel setup complete! Testing connection..."
+kubectl get nodes

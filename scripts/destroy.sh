@@ -17,6 +17,9 @@ echo ""
 read -rp "Type 'yes' to confirm: " confirm
 [ "$confirm" = "yes" ] || { echo "Aborted."; exit 0; }
 
+# ─── Establish SSH Tunnel for access ──────────────────────────────────────────
+bash "$(dirname "$0")/kubeconfig.sh"
+
 # ─── Clean up in-cluster resources first (otherwise VPC deletion fails) ───────
 echo ""
 echo ">>> Deleting K8s LoadBalancer Services (release ALB before terraform destroy)..."

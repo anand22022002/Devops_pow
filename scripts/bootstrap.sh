@@ -102,6 +102,11 @@ helm upgrade --install argocd argo/argo-cd \
   --set server.insecure=true   # ALB handles TLS
 
 echo ""
+echo ">>> Installing ArgoCD Image Updater..."
+kubectl apply -n argocd -f https://raw.githubusercontent.com/argoproj-labs/argocd-image-updater/stable/manifests/install.yaml
+kubectl apply -f ../../k8s-manifests/argocd/image-updater/config.yaml
+
+echo ""
 echo ">>> Installing Monitoring stack..."
 helm repo add prometheus-community https://prometheus-community.github.io/helm-charts
 kubectl create namespace monitoring --dry-run=client -o yaml | kubectl apply -f -
