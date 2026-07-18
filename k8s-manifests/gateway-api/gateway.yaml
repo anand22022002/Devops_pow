@@ -8,7 +8,7 @@ metadata:
   annotations:
     argocd.argoproj.io/sync-wave: "-5"
 spec:
-  controllerName: eks.amazonaws.com/alb
+  controllerName: ingress.k8s.aws/alb
 ---
 ##############################################################
 # Gateway — shared ALB for all services
