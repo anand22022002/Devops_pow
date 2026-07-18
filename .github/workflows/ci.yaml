@@ -15,7 +15,7 @@ env:
   IMAGE_NAME: anand22022002/kubeinfra-frontend
 
 permissions:
-  contents: read
+  contents: write
   security-events: write
   packages: write
 
@@ -184,4 +184,17 @@ jobs:
           echo "### ✅ Image Pushed" >> $GITHUB_STEP_SUMMARY
           echo "**Registry:** ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}" >> $GITHUB_STEP_SUMMARY
           echo "**Digest:** ${{ steps.push.outputs.digest }}" >> $GITHUB_STEP_SUMMARY
-          echo "ArgoCD Image Updater will detect this tag and sync to EKS." >> $GITHUB_STEP_SUMMARY
+          echo "GitHub Actions will update Kustomize with tag: ${{ steps.meta.outputs.version }}." >> $GITHUB_STEP_SUMMARY
+
+      - name: Update Kustomize Image Tag
+        run: |
+          cd k8s-manifests/boutique-app/overlays/dev
+          sed -i '/name: ghcr.io\/anand22022002\/kubeinfra-frontend/{n;s/newTag: .*/newTag: "${{ steps.meta.outputs.version }}"/}' kustomization.yaml
+
+      - name: Commit and push changes
+        run: |
+          git config --global user.name "GitHub Actions Bot"
+          git config --global user.email "actions@github.com"
+          git add k8s-manifests/boutique-app/overlays/dev/kustomization.yaml
+          git commit -m "chore(cd): update frontend image tag to ${{ steps.meta.outputs.version }} [skip ci]"
+          git push
