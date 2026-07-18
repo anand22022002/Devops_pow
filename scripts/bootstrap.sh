@@ -80,7 +80,8 @@ helm upgrade --install aws-load-balancer-controller eks/aws-load-balancer-contro
   -n kube-system \
   -f ../../../k8s-manifests/networking/aws-lb-controller/values.yaml
 
-echo ">>> Waiting for AWS Load Balancer Controller to be ready..."
+echo ">>> Restarting AWS Load Balancer Controller to load fresh certificates..."
+kubectl rollout restart deployment aws-load-balancer-controller -n kube-system
 kubectl rollout status deployment/aws-load-balancer-controller -n kube-system --timeout=120s
 sleep 15
 
