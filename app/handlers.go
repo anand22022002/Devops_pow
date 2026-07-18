@@ -351,8 +351,7 @@ func (fe *frontendServer) placeOrderHandler(w http.ResponseWriter, r *http.Reque
 		return
 	}
 
-	order, err := pb.NewCheckoutServiceClient(fe.checkoutSvcConn).
-		PlaceOrder(r.Context(), &pb.PlaceOrderRequest{
+	order, err := fe.placeOrder(r.Context(), &pb.PlaceOrderRequest{
 			Email: payload.Email,
 			CreditCard: &pb.CreditCardInfo{
 				CreditCardNumber:          payload.CcNumber,
