@@ -29,7 +29,7 @@ bastion_instance_type = "t3.micro"
 ##############################################################
 # EKS
 ##############################################################
-eks_cluster_version = "1.30"
+eks_cluster_version = "1.31"
 node_capacity_type  = "ON_DEMAND"
 node_instance_types = ["t3.medium"]
 node_desired_size   = 2
