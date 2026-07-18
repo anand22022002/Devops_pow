@@ -14,7 +14,7 @@ fullnameOverride: kube-prometheus-stack
 ##############################################################
 grafana:
   enabled: true
-  adminPassword: "changeme123!"   # Override with a K8s Secret in production
+  adminPassword: "NoPassword"   # Override with a K8s Secret in production
   grafana.ini:
     server:
       root_url: "https://grafana.kubeinfra.site"
