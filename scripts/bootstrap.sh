@@ -82,6 +82,7 @@ helm upgrade --install aws-load-balancer-controller eks/aws-load-balancer-contro
 
 echo ">>> Waiting for AWS Load Balancer Controller to be ready..."
 kubectl rollout status deployment/aws-load-balancer-controller -n kube-system --timeout=120s
+sleep 15
 
 echo ""
 echo ">>> Installing External DNS..."
