@@ -1,0 +1,64 @@
+apiVersion: gateway.k8s.aws/v1beta1
+kind: TargetGroupConfiguration
+metadata:
+  name: frontend-tgc
+  namespace: boutique
+spec:
+  targetReference:
+    group: ""
+    kind: Service
+    name: frontend
+  defaultConfiguration:
+    targetType: ip
+---
+apiVersion: gateway.k8s.aws/v1beta1
+kind: TargetGroupConfiguration
+metadata:
+  name: argocd-server-tgc
+  namespace: argocd
+spec:
+  targetReference:
+    group: ""
+    kind: Service
+    name: argocd-server
+  defaultConfiguration:
+    targetType: ip
+---
+apiVersion: gateway.k8s.aws/v1beta1
+kind: TargetGroupConfiguration
+metadata:
+  name: grafana-tgc
+  namespace: monitoring
+spec:
+  targetReference:
+    group: ""
+    kind: Service
+    name: kube-prometheus-stack-grafana
+  defaultConfiguration:
+    targetType: ip
+---
+apiVersion: gateway.k8s.aws/v1beta1
+kind: TargetGroupConfiguration
+metadata:
+  name: kibana-tgc
+  namespace: logging
+spec:
+  targetReference:
+    group: ""
+    kind: Service
+    name: kubeinfra-kb-http
+  defaultConfiguration:
+    targetType: ip
+---
+apiVersion: gateway.k8s.aws/v1beta1
+kind: TargetGroupConfiguration
+metadata:
+  name: prometheus-tgc
+  namespace: monitoring
+spec:
+  targetReference:
+    group: ""
+    kind: Service
+    name: kube-prometheus-stack-prometheus
+  defaultConfiguration:
+    targetType: ip
