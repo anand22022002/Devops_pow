@@ -4,84 +4,24 @@
 
 ## Architecture
 
-```mermaid
-graph TD
-    %% Styling
-    classDef default fill:#f9f9f9,stroke:#333,stroke-width:1px;
-    classDef aws fill:#FF9900,stroke:#232F3E,stroke-width:2px,color:white;
-    classDef k8s fill:#326CE5,stroke:#fff,stroke-width:2px,color:white;
-    classDef ext fill:#2ea44f,stroke:#fff,stroke-width:2px,color:white;
-
-    %% External & Local
-    Dev((Developer)) -->|1. Push Code| GH(GitHub Repository):::ext
-    Dev -->|Infrastructure as Code| TF(Terraform)
-    TF -.->|State Backup| S3(AWS S3 Backend):::aws
-    User((End User)) -->|HTTPS Traffic| R53(Amazon Route 53):::aws
-    
-    %% CI Pipeline
-    subgraph "Continuous Integration (GitHub Actions)"
-        direction LR
-        GH --> Checkout[Checkout Code]
-        Checkout --> SonarQube[SonarQube Code Analysis]
-        SonarQube --> Build[Build Docker Image]
-        Build --> Trivy[Trivy Security Scan]
-        Trivy --> PushImage[Push to Registry]
-    end
-    PushImage --> GHCR(GitHub Container Registry):::ext
-    SonarQube -.->|Quality Gate Alerts| Slack(Slack Notifications)
-
-    %% AWS Infrastructure
-    TF -->|Provisions| VPC
-
-    subgraph "AWS Environment"
-        R53 -->|DNS Resolution| ACM(ACM Certificates):::aws
-        R53 -->|Routes to| ALB(Application Load Balancer / LBC):::aws
-        
-        subgraph VPC ["AWS VPC"]
-            direction TB
-            subgraph PublicSubnet ["Public Subnet"]
-                IGW[Internet Gateway]
-                NAT[NAT Gateway]
-                Bastion[Bastion Host]
-                ALB
-            end
-
-            subgraph PrivateSubnet ["Private Subnet (Amazon EKS)"]
-                direction TB
-                
-                %% CD Pipeline
-                subgraph CD ["Continuous Delivery"]
-                    ArgoCD(ArgoCD):::k8s
-                end
-                
-                %% Core Application
-                subgraph AppEnv ["Boutique Application"]
-                    GatewayAPI[Gateway API / Ingress]
-                    AppPods[Application Pods]
-                    DBPods[Database Pods]
-                    GatewayAPI --> AppPods
-                    AppPods --> DBPods
-                end
-                
-                %% Observability Stack
-                subgraph Observability ["Logging & Monitoring"]
-                    Prometheus(Prometheus) --> Grafana(Grafana)
-                    Prometheus --> AlertManager(AlertManager)
-                    ECK[ECK Operator / ElasticSearch]
-                    FluentBit[FluentBit / Fluentd]
-                end
-            end
-        end
-    end
-
-    %% Deployment flow
-    GHCR -.->|Pulls New Image| ArgoCD
-    GH -.->|Pulls K8s Manifests| ArgoCD
-    ArgoCD -->|Syncs State| AppEnv
-    
-    %% Traffic & Alerts
-    ALB --> GatewayAPI
-    AlertManager -.->|Triggers Alerts| Slack
+```
+Local Machine ──push──> GitHub ──trigger──> GitHub Actions (CI)
+                                                  │
+                              Checkout → SonarQube → Build → Trivy → Push
+                                                  │
+                                                  ▼
+                                    GitHub Container Registry (GHCR)
+                                                  │
+                                                  ▼
+                             ArgoCD (GitOps) ──reconciles──> EKS (private)
+                                                  │
+              ┌───────────────────────────────────┼──────────────────────────────┐
+              ▼                                   ▼                              ▼
+       Gateway API / ALB               ECK Stack (Logging)           Prometheus / Grafana
+       Route53 + ACM (TLS)       Filebeat→ES→Kibana                  Alertmanager → Slack
+              │
+              ▼
+       boutique-app pods
 ```
 
 ## Repository Layout
