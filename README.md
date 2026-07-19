@@ -7,7 +7,7 @@
 ```
 Local Machine ──push──> GitHub ──trigger──> GitHub Actions (CI)
                                                   │
-                              Checkout → Build → SonarQube → Trivy → Push
+                              Checkout → SonarQube → Build → Trivy → Push
                                                   │
                                                   ▼
                                     GitHub Container Registry (GHCR)
@@ -150,8 +150,11 @@ The following screenshots demonstrate the end-to-end working state of the platfo
 *Kubernetes nodes and pods successfully provisioned and running the microservices stack.*
 
 ### 3. CI/CD & GitOps
+![SonarQube Code Quality](docs/Images/sonarqube.png)
+*SonarQube enforcing strict code quality and security gates before the Docker build proceeds.*
+
 ![GitHub Actions CI Pipeline](docs/Images/githubaction_ci_pipeline.png)
-*GitHub Actions CI pipeline successfully building, scanning (SonarQube/Trivy), and pushing the container image.*
+*GitHub Actions CI pipeline successfully building, scanning via Trivy, and pushing the container image.*
 
 ![ArgoCD GitOps Flow](docs/Images/argocd_flow.png)
 *ArgoCD automatically detecting Git state changes and reconciling the EKS cluster (GitOps).*
