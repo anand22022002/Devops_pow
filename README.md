@@ -121,8 +121,8 @@ kubectl apply -f k8s-manifests/argocd/apps/
 2. **SonarQube** quality gate (fail = pipeline stops)
 3. **Trivy** image scan (HIGH/CRITICAL = pipeline stops)
 4. Push to **GHCR**
-5. **ArgoCD Image Updater** detects new tag
-6. **ArgoCD** reconciles cluster → new pods roll out
+5. **GitHub Actions** automatically updates `kustomization.yaml` in Git with the new image tag (short commit SHA).
+6. **ArgoCD** detects the git commit, reconciles the cluster, and triggers a rolling update of the new pods.
 
 ## Observability URLs (post-apply)
 
@@ -133,6 +133,42 @@ kubectl apply -f k8s-manifests/argocd/apps/
 | Grafana | `https://grafana.kubeinfra.site` |
 | Kibana | `https://kibana.kubeinfra.site` |
 | Prometheus | `https://prometheus.kubeinfra.site` |
+
+## Proof of Work / Visual Flow
+
+The following screenshots demonstrate the end-to-end working state of the platform: from infrastructure provisioning to CI/CD, GitOps deployment, and observability.
+
+### 1. Infrastructure & Networking
+![VPC Dashboard](docs/Images/vpc_dashboard.png)
+*AWS VPC Dashboard showing the underlying network architecture (Subnets, NAT Gateways, Route Tables).*
+
+![Route53 Hosted Zone](docs/Images/aws_hosted_zone.png)
+*AWS Route53 Hosted Zone automatically configured for custom domain routing and ACM TLS validation.*
+
+### 2. Kubernetes Cluster (Amazon EKS)
+![EKS Nodes and Pods](docs/Images/K8s_nodes_pods.png)
+*Kubernetes nodes and pods successfully provisioned and running the microservices stack.*
+
+### 3. CI/CD & GitOps
+![GitHub Actions CI Pipeline](docs/Images/githubaction_ci_pipeline.png)
+*GitHub Actions CI pipeline successfully building, scanning (SonarQube/Trivy), and pushing the container image.*
+
+![ArgoCD GitOps Flow](docs/Images/argocd_flow.png)
+*ArgoCD automatically detecting Git state changes and reconciling the EKS cluster (GitOps).*
+
+### 4. Application & Routing
+![Gateway API HTTPRoutes](docs/Images/all_httproute.png)
+*Kubernetes Gateway API HTTPRoutes effectively managing ingress traffic via AWS ALB.*
+
+![Live Application](docs/Images/app_deployed.png)
+*The Online Boutique microservices application successfully deployed and accessible over HTTPS.*
+
+### 5. Observability (Logging & Monitoring)
+![Grafana Dashboard](docs/Images/grafana_dashboard.png)
+*Grafana dashboard visualizing real-time cluster metrics pulled from Prometheus.*
+
+![Kibana Logs](docs/Images/kibana_logs.png)
+*Kibana interface centralizing and analyzing logs collected by Filebeat via Elasticsearch.*
 
 ## Cost Estimate (dev, always-on)
 
