@@ -4,25 +4,7 @@
 
 ## Architecture
 
-```
-Local Machine ──push──> GitHub ──trigger──> GitHub Actions (CI)
-                                                  │
-                              Checkout → SonarQube → Build → Trivy → Push
-                                                  │
-                                                  ▼
-                                    GitHub Container Registry (GHCR)
-                                                  │
-                                                  ▼
-                             ArgoCD (GitOps) ──reconciles──> EKS (private)
-                                                  │
-              ┌───────────────────────────────────┼──────────────────────────────┐
-              ▼                                   ▼                              ▼
-       Gateway API / ALB               ECK Stack (Logging)           Prometheus / Grafana
-       Route53 + ACM (TLS)       Filebeat→ES→Kibana                  Alertmanager → Slack
-              │
-              ▼
-       boutique-app pods
-```
+![Architecture Diagram](docs/Images/Architecture_daigram.png)
 
 ## Repository Layout
 
